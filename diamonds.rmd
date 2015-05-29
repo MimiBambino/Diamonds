@@ -1,0 +1,73 @@
+---
+title: "diamonds"
+author: "Cynthia O'Donnell"
+date: "05/29/2015"
+output: html_document
+---
+
+# Analyzing Diamonds
+
+```{r}
+library(ggplot2)
+data(diamonds)
+summary(diamonds)
+str(diamonds)
+summary(diamonds$color)
+```
+
+#### A histogram of diamond prices
+
+```{r, echo=FALSE}
+qplot(x = price, data = diamonds, color=I('#040600'), fill=I('#8e0050'))
+```
+```{r}
+summary(diamonds$price)
+```
+
+##### The distribution is right tailed with a median of 2401 and a mean of 3933.
+
+```{r}
+summary(diamonds$price < 500)
+summary(diamonds$price < 250)
+summary(diamonds$price > 15000)
+```
+There are no diamonds worth less than $250 and there are 1655 diamonds worth more than $15,000.
+
+#### Let's change the bin width and the axes
+```{r, echo=FALSE}
+qplot(x=diamonds$price, data=diamonds, binwidth=50, color= I('#064e06')) +
+  scale_x_continuous(limits=c(0,10000))
+```
+
+#### Facet Wrap by cut
+```{r, echo=FALSE}
+qplot(x=price, data = diamonds, color= I('#999999'), fill= I('#ffaa00')) +
+ facet_wrap(~cut)
+```
+#### Which cut has the highest priced diamond?
+```{r}
+diamonds$cut[diamonds$price == max(diamonds$price)]
+```
+#### Which cut has the lowest priced diamond?
+```{r}
+diamonds$cut[diamonds$price == min(diamonds$price)]
+```
+#### Which cut has the lowest median price?
+```{r}
+by(diamonds$price, diamonds$cut, median)
+```
+#### Lets look into the relative price distributions by cut again.
+```{r}
+qplot(x = price, data = diamonds, color=I("#414141"), fill=I("#0641c8")) + 
+  facet_wrap(~cut, scales="free_y")
+```
+##### Now the graphs indicate that the distributions are similarly distributed.
+
+### Price Per Carat
+```{r}
+by(diamonds$price, diamonds$carat, summary)
+qplot(x = price/carat, data = diamonds, color=I("#de007e"), fill=I("#414141"), binwidth = 10) + 
+  facet_wrap(~cut, scales="free_y")
+```
+
+
