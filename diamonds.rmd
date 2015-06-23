@@ -65,9 +65,106 @@ qplot(x = price, data = diamonds, color=I("#414141"), fill=I("#0641c8")) +
 
 ### Price Per Carat
 ```{r}
-by(diamonds$price, diamonds$carat, summary)
 qplot(x = price/carat, data = diamonds, color=I("#de007e"), fill=I("#414141"), binwidth = 10) + 
   facet_wrap(~cut, scales="free_y")
 ```
+#### Box Plot
+```{r}
+qplot(x=color, y=price, 
+      data=diamonds,
+      geom='boxplot') +
+  coord_cartesian(ylim=c(0,8500))
+```
+#### Summarize price by color
+```{r}
+by(diamonds$price, diamonds$color, summary)
+7695-1860
+4214-911
 
+```
+##Bivariate Analysis
+
+Create a scatterplot of price vs x.
+```{r}
+ggplot(aes(x=x, y=price), data = diamonds) +
+  geom_point()
+```
+The scatterplot has several outliers with x values of 0.  Generally, as the value of x increases past 6, the price increases exponentially.
+
+Now, I find the correlation between price and each of x, y and z.
+```{r}
+cor.test(diamonds$x, diamonds$price, method = 'pearson')
+cor.test(diamonds$y, diamonds$price, method = 'pearson')
+cor.test(diamonds$z, diamonds$price, method = 'pearson')
+```
+
+```{r}
+ggplot(aes(x=depth, y=price), data = diamonds) +
+  geom_point()
+```
+Yuck!  Let's prevent some of the overplotting so we might be able to see a trend.
+
+```{r}
+ggplot(aes(x=depth, y=price), data = diamonds) +
+  geom_point(alpha=1/100)
+```
+We can see from this plot that most diamonds have depth values between 60 and 64.
+
+```{r}
+cor.test(diamonds$depth, diamonds$price, method = 'pearson')
+```
+Now I plot price vs. carat.
+```{r}
+ggplot(aes(x=carat, y=price), data = diamonds) +
+  geom_point(alpha=1/10) +
+  xlim(0, quantile(diamonds$carat, 0.99)) +
+  ylim(0, quantile(diamonds$price, 0.99))
+```
+I will create a new variable to represent the volume of the diamonds.  This variable is calculated by multiplying the x, y, and z variables. Then I plot volume vs. price.
+```{r}
+diamonds$volume = diamonds$x * diamonds$y * diamonds$z
+
+ggplot(aes(x=volume, y=price), data = diamonds) +
+  geom_point(alpha=1/20) +
+  xlim(0, 800)
+```
+
+Let's find the correlation between price and diamonds with a volume between 0 and 800.
+```{r}
+custom_volume = subset(diamonds, diamonds$volume > 0)
+custom_volume = subset(custom_volume, custom_volume$volume <= 800)
+cor.test(custom_volume$volume, custom_volume$price, method = 'pearson')
+```
+The correlation between volume and price in the original data is 0.90 and subsetting some of the outliers increased the correlation to 0.92.
+Now I plot it and add a linear regression line.
+
+```{r}
+ggplot(aes(x=volume, y=price), data = custom_volume) +
+  geom_point(alpha=1/20) +
+  xlim(0, 500) +
+  ylim(0, 20000) +
+  geom_smooth(method = 'lm', color='red')
+```
+This doesn't look like a good fit at all. The linear model line entirely misses what may be an actual linear relationship for prices under 8000 and volumes under 180. Let's zoom in further to see if this data is approximately linear in that range.
+
+```{r}
+tiny = subset(diamonds, diamonds$volume > 30)
+tiny = subset(tiny, tiny$volume <= 180)
+
+ggplot(aes(x=volume, y=price), data = tiny) +
+  geom_point(alpha=1/20) +
+  geom_smooth(method = 'lm', color='red')
+```
+
+```{r}
+library(dplyr)
+
+diamonds_by_clarity <- group_by(diamonds, clarity)
+diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
+
+diamonds_by_color <- group_by(diamonds, color)
+diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
+
+head(diamonds_mp_by_clarity)
+```
 
